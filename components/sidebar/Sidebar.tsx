@@ -8,6 +8,7 @@ import { ThemeToggle } from "../ui/theme-toggle";
 import SystemStatus from "./SystemStatus";
 import toast from 'react-hot-toast';
 
+// Fungsi Favicon dipisahkan agar Sidebar lebih bersih
 function FaviconWithFallback({ url, title, isActive }: { url: string; title: string; isActive: boolean }) {
   const [error, setError] = useState(false);
   if (error || !url) {
@@ -20,7 +21,7 @@ function FaviconWithFallback({ url, title, isActive }: { url: string; title: str
   return (
     <img
       src={url}
-      alt=""
+      alt={`${title} favicon`}
       className="w-4 h-4 object-contain"
       onError={() => setError(true)}
     />
@@ -39,21 +40,16 @@ export default function Sidebar() {
   const [newFeedName, setNewFeedName] = useState("");
   const [newFeedUrl, setNewFeedUrl] = useState("");
   const [showForm, setShowForm] = useState(false);
-
-  // --- STATE TOGGLE MOBILE ---
   const [isOpen, setIsOpen] = useState(false);
+
   const closeSidebar = () => setIsOpen(false);
 
-
-  
-
   // Sync Bookmark Count
-  const updateCount = () => {
-    const saved = JSON.parse(localStorage.getItem("bookmarks") || "[]");
-    setBookmarkCount(saved.length);
-  };
-
   useEffect(() => {
+    const updateCount = () => {
+      const saved = JSON.parse(localStorage.getItem("bookmarks") || "[]");
+      setBookmarkCount(saved.length);
+    };
     updateCount();
     window.addEventListener("storage", updateCount);
     const interval = setInterval(updateCount, 1000);
@@ -63,6 +59,7 @@ export default function Sidebar() {
     };
   }, []);
 
+  // Click Outside Form
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (showForm && formRef.current && !formRef.current.contains(event.target as Node)) {
@@ -75,6 +72,7 @@ export default function Sidebar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showForm]);
 
+  // Load Custom Feeds
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("custom_feeds") || "[]");
     setCustomFeeds(saved);
@@ -83,45 +81,32 @@ export default function Sidebar() {
   const handleAddFeed = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFeedName.trim() || !newFeedUrl.trim()) {
-      toast.error("Nama dan URL harus diisi!")
-  return;
+      toast.error("Nama dan URL harus diisi!");
+      return;
     }
     
-    // ... logika simpan ...
-    toast.success(`Chanel "${newFeedName}" berhasil ditambahkan!`); // Feedback berhasil
-    setShowForm(false);
-
     let finalUrl = newFeedUrl.trim();
     if (finalUrl.includes("?url=")) {
       finalUrl = decodeURIComponent(finalUrl.split("?url=").pop() || "");
-
-
     }
 
     const newEntry = { name: newFeedName.trim(), url: finalUrl };
     const updatedFeeds = [...customFeeds, newEntry];
     setCustomFeeds(updatedFeeds);
     localStorage.setItem("custom_feeds", JSON.stringify(updatedFeeds));
+    toast.success(`Channel "${newFeedName}" berhasil ditambahkan!`);
     setNewFeedName("");
     setNewFeedUrl("");
     setShowForm(false);
   };
 
   const deleteFeed = (index: number) => {
+    const feedName = customFeeds[index].name;
     const updated = customFeeds.filter((_, i) => i !== index);
     setCustomFeeds(updated);
     localStorage.setItem("custom_feeds", JSON.stringify(updated));
-    const feedName = customFeeds[index].name
-
-    // ... logika hapus ...
-    toast.success(`Chanel "${feedName}" telah di hapus`);
+    toast.success(`Channel "${feedName}" telah dihapus`);
   };
-
-  // 3. Feedback saat BATAL (Opsional tapi baik untuk UX)
-const handleCancel = () => {
-  setShowForm(false);
-  toast("Penyimpanan dibatalkan", { icon: 'ℹ️' });
-};
 
   const filteredCategories = useMemo(() => {
     return feedsData.categories
@@ -136,17 +121,18 @@ const handleCancel = () => {
 
   return (
     <>
-      {/* 1. Tombol Hamburger (Hanya muncul di mobile) */}
+      {/* Tombol Hamburger Mobile */}
       {!isOpen && (
         <button 
           onClick={() => setIsOpen(true)}
+          aria-label="Open Sidebar"
           className="fixed top-4 left-4 z-[60] p-2.5 bg-blue-600 text-white rounded-xl shadow-lg md:hidden"
         >
           <Menu size={20} strokeWidth={3} />
         </button>
       )}
 
-      {/* 2. Overlay (Muncul saat sidebar terbuka di mobile) */}
+      {/* Overlay Mobile */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[50] md:hidden animate-in fade-in duration-300"
@@ -154,7 +140,6 @@ const handleCancel = () => {
         />
       )}
 
-      {/* 3. Sidebar Container */}
       <aside className={`
         fixed md:sticky top-0 left-0 z-[55] flex flex-col h-screen bg-bg-secondary border-r border-border-base/50 transition-transform duration-300 ease-in-out
         ${isOpen ? "translate-x-0 w-[280px]" : "-translate-x-full w-[280px]"}
@@ -168,8 +153,11 @@ const handleCancel = () => {
             </h1>
             <div className="flex items-center gap-1">
               <ThemeToggle />
-              {/* Tombol Close (Hanya mobile) */}
-              <button onClick={closeSidebar} className="md:hidden p-2 text-text-secondary">
+              <button 
+                onClick={closeSidebar} 
+                aria-label="Close Sidebar"
+                className="md:hidden p-2 text-text-secondary hover:text-text-primary transition-colors"
+              >
                 <X size={20} />
               </button>
             </div>
@@ -234,6 +222,7 @@ const handleCancel = () => {
               </h3>
               <button
                 onClick={() => setShowForm(!showForm)}
+                aria-label="Add New Channel"
                 className="p-1 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors border border-transparent hover:border-blue-500/20"
               >
                 <Plus size={16} strokeWidth={3} />
@@ -245,12 +234,14 @@ const handleCancel = () => {
                 <input
                   placeholder="Nama Channel"
                   value={newFeedName}
+                  required
                   onChange={(e) => setNewFeedName(e.target.value)}
                   className="w-full text-[11px] p-2 bg-transparent border-b border-border-base outline-none focus:border-blue-500 font-bold text-text-primary"
                 />
                 <input
                   placeholder="URL RSS (Contoh: /feed/)"
                   value={newFeedUrl}
+                  required
                   onChange={(e) => setNewFeedUrl(e.target.value)}
                   className="w-full text-[11px] p-2 bg-transparent border-b border-border-base outline-none focus:border-blue-500 font-bold text-text-primary"
                 />
@@ -274,7 +265,11 @@ const handleCancel = () => {
                       <Rss size={14} strokeWidth={2.5} className={isActive ? "text-blue-500" : "text-text-tertiary opacity-70 group-hover:text-text-primary"} />
                       <span className="truncate">{feed.name}</span>
                     </Link>
-                    <button onClick={() => deleteFeed(index)} className="opacity-0 group-hover:opacity-100 p-2 text-text-tertiary hover:text-red-500 transition-all">
+                    <button 
+                      onClick={() => deleteFeed(index)} 
+                      aria-label={`Delete ${feed.name} channel`}
+                      className="opacity-0 group-hover:opacity-100 p-2 text-text-tertiary hover:text-red-500 transition-all"
+                    >
                       <Trash2 size={14} />
                     </button>
                   </li>
