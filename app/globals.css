@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border-base: var(--border-base);
+  /* ... spacing & font tetap sama ... */
+}
+
+/* MODE TERANG (Default) */
+:root {
+  --bg-primary: #f0f2f5;
+  --bg-secondary: #ffffff;
+
+  /* TAJAM & TEGAS */
+--text-primary: #0f172a;   /* Slate 900 - Sangat tegas untuk judul */
+  --text-secondary: #334155; /* Slate 700 - Nyaman dibaca untuk konten */
+  --text-tertiary: #64748b;  /* Slate 500 - Untuk metadata *
+
+  /* BORDER LEBIH DEFINED */
+--border-base: #d1d5db;    /* Slate 200 */
+  --accent: #3b82f6;
+}
+
+/* SETTING SELECTION GLOBAL */
+::selection {
+  /* Biru pekat ala W3Schools untuk Mode Terang */
+  background-color: #04aa6d; /* Kamu bisa pakai #0455BF jika ingin biru yang benar-benar mirip gambar */
+  color: #ffffff;
+}
+.prose {
+  line-height: 1.8;
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+}
+
+.prose h1,
+.prose h2 {
+  color: var(--text-primary);
+  margin-top: 2rem;
+  font-weight: 800;
+}
+
+.prose img {
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin: 2rem auto;
+}
+/* @layer base {
+  .dark * {
+    border-color: var(--border-base);
+  }
+} */
+/* MODE GELAP */
+.dark {
+  --bg-primary: #0d1117; /* Gelap GitHub */
+  --bg-secondary: #161b22;
+  --text-primary: #f0f6fc; /* PUTIH: Biar kelihatan di bg gelap */
+  --text-secondary: #8b949e;
+  --border-base: rgba(48, 54, 61, 0.4);
+}
+
+.dark ::selection {
+  /* Biru transparan untuk Mode Gelap agar tetap nyaman di mata */
+  background-color: rgba(37, 99, 235, 0.4); 
+  color: #ffffff;
+}
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
